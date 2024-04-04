@@ -16,11 +16,11 @@ namespace Repository
         { 
         }
 
-        public IEnumerable<Person> GetAll()
+        public PagedList<Person> GetAll(PersonParameters personParameters)
         {
-            return FindAll()
-                .OrderByDescending(birth => birth.BirthDate)
-                .ToList();
+            return PagedList<Person>.ToPagedList(FindAll().OrderByDescending(p => p.BirthDate),
+                personParameters.PageNumber,
+                personParameters.PagerSize);
         }
 
         public Person GetPersonById(Guid id)
