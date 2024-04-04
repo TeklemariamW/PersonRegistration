@@ -1,4 +1,5 @@
-﻿using Entities.Models;
+﻿using Entities;
+using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Interfaces
 {
     public interface IPersonRepository
     {
-        IEnumerable<Person> GetAll();
+        PagedList<Person> GetAll(PersonParameters personParameters);
         Person GetPersonById(Guid personId);
         Person PersonDetails(Guid personId);
         void AddPerson(Person person);

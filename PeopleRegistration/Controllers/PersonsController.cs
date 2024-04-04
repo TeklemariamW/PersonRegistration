@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Entities;
 using Entities.DataTransferObjects;
 using Entities.Models;
 using Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace PeopleRegistration.Controllers
 {
@@ -13,35 +15,47 @@ namespace PeopleRegistration.Controllers
     public class PersonsController : ControllerBase
     {
         private readonly IPersonRepository _personRep;
-        //  private readonly ILoggerManager _logger;
+        private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         public PersonsController(
             IPersonRepository personRepository,
-            // ILoggerManager logger,
+            ILoggerManager logger,
             IMapper mapper)
         {
             _personRep = personRepository;
-            //  _logger= logger;
+            _logger= logger;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public IActionResult GetAllPersons()
+        public IActionResult GetAllPersons([FromQuery] PersonParameters personParameters)
         {
             try
             {
-                var persons = _personRep.GetAll();
+                var persons = _personRep.GetAll(personParameters);
+
+                var metadata = new
+                {
+                    persons.TotalCount,
+                    persons.PageSize,
+                    persons.CurrentPage,
+                    persons.TotalPages,
+                    persons.HasNext,
+                    persons.HasPrevious
+                };
 
                 var personsResult = _mapper.Map<IEnumerable<PersonDto>>(persons);
 
-                //_logger.LogInfo($"Return all owner from the Database");
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+                _logger.LogInfo($"Return {personsResult.Count()}owner from the Database");
 
                 return Ok(personsResult);
 
             }
             catch (Exception ex)
             {
-                // _logger.LogError($"Something went wrong inside GetAllPersons action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllPersons action: {ex.Message}");
 
                 return StatusCode(500, ex.Message);
             }
